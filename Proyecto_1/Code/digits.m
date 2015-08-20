@@ -40,12 +40,36 @@ classdef digits
             obj.U_zero = u.U_zero;
         end
 
+        function obj = init_ml(obj)
+            u = load('test_matrix.mat');
+            obj.U_one = u.U_one;
+            obj.U_two = u.U_two;
+            obj.U_three = u.U_three;
+            obj.U_four = u.U_four;
+            obj.U_five = u.U_five;
+            obj.U_six = u.U_six;
+            obj.U_seven = u.U_seven;
+            obj.U_eight = u.U_eight;
+            obj.U_nine = u.U_nine;
+            obj.U_zero = u.U_zero;
+        end
+
         function obj = random(obj)
             load('data_numbers.mat');
             index = randi([1 5000]);
             x = X(index, :);
             obj.x = x';
             obj.y_real = y(index);
+            clear X
+            clear y
+        end
+
+        function obj = random_ml(obj)
+            load('test.mat');
+            index = randi([1 1000]);
+            x = X_test(index, :);
+            obj.x = x';
+            obj.y_real = y_test(index);
             clear X
             clear y
         end
@@ -73,7 +97,7 @@ classdef digits
 
         end
 
-        function obj = run(obj, n)
+        function tasa = run(obj, n)
             results = zeros(n, 1);
             
             for i = 1:n
@@ -82,7 +106,20 @@ classdef digits
                 results(i) = o.flag;
             end
             
-            obj.tasa = mean(results);
+            tasa = mean(results);
+
+        end
+
+        function tasa = run_ml(obj, n)
+            results = zeros(n, 1);
+            
+            for i = 1:n
+                o = random_ml(obj);
+                o = predict(o);
+                results(i) = o.flag;
+            end
+            
+            tasa = mean(results);
 
         end
         
