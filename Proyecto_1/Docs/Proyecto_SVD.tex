@@ -1,0 +1,235 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{article}
+%\usepackage[spanish]{babel}
+\textwidth     =  7.0in
+\textheight    =  9.0in
+\oddsidemargin = -0.2in
+\topmargin     = -.5in
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{amsmath, amsthm, amssymb, latexsym}
+\newtheorem{lma}{Lema}
+\newtheorem{thm}{Teorema}
+\newtheorem{prb}{Prueba}
+%----------------------------------------------------------------------
+%
+% Archivo LaTeX para el proyecto de reconocimiento de patrones
+%
+% curso:       Modelos matematicos y numericos
+% instructor:  Jose Luis Morales
+%              Departamento de Matematicas
+%              I T A M
+%              agosto 2015
+%
+%----------------------------------------------------------------------
+
+\newcommand{\real}{\mathbb{R}}
+\newcommand{\complex}{\mathbb{C}}
+\newcommand{\feal}{\mathbb{F}}
+\newcommand{\ul}{\underline}
+%
+\newcommand{\noi}{\noindent}
+\newcommand{\pa}{\partial}
+%
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+%
+\newcommand{\beas}{\begin{eqnarray*}}
+\newcommand{\eeas}{\end{eqnarray*}}
+%
+\newcommand{\non}{\nonumber}
+%
+\newcommand{\bit}{\begin{itemize}}
+\newcommand{\eit}{\end{itemize}}
+%
+\newcommand{\bee}{\begin{enumerate}}
+\newcommand{\eee}{\end{enumerate}}
+%
+\newcommand{\bed}{\begin{description}}
+\newcommand{\edd}{\end{description}}
+%
+\newcommand{\bec}{\begin{center}}
+\newcommand{\edc}{\end{center}}
+%
+\begin{document}
+\title{Modelos matem\'aticos y num\'ericos}
+\author{Proyecto \#1: Reconocimiento de patrones}
+\date{Instructor: JL Morales}
+\maketitle
+
+
+\subsubsection*{Descomposici\'on en valores singulares}
+
+\begin{thm} [Descomposici\'on en valores singulares] \label{svd} 
+ 
+ Si $A$ es una matriz real de $m \times n$, entonces existen matrices ortogonales
+\[
+   U = [u_1, \ldots, u_m] \in \real^{m \times m}, \quad
+   V = [v_1, \ldots, v_n] \in \real^{n \times n} 
+\]
+tales que 
+\[
+  U^TAV = {\rm diag}(\sigma_1, \ldots, \sigma_p) \in \real^{m \times n}, \quad   p = \min \{m,n\}
+\]
+en donde $\sigma_1 \ge \sigma_2 \ge \ldots \ge \sigma_p \ge 0$.
+\end{thm}
+
+\begin{prb}
+
+\bigskip
+
+Consideremos la norma matricial inducida por la norma vectorial euclidiana; entonces es claro que existen 2 vectores unitarios 
+$x \in \real^n$, $y \in \real^m$ con la propiedad 
+\[
+    Ax = \sigma y, \quad \sigma = ||A||_2,
+\]
+ahora podemos construir matrices ortogonales $U, V$ a partir de los vectores $x$, $y$ como sigue
+\[
+   V = \left [\, x \,|\,  V_2   \, \right ], \quad  U = \left [ \,y \,|\,  U_2  \, \right ].
+\]
+De la construcci\'on anterior es f\'acil probar que
+\[
+   U^TAV = \left [ \begin{array}{cc}  \sigma & w^T \\
+                                         0   & B  
+                   \end{array} 
+            \right ] = A_1   
+\]
+en donde $w \in \real^{n-1}$ y $B \in \real^{(m-1) \times (n-1)}$;
+de la desigualdad 
+\[
+   \left |\left | A_1   \left [ \begin{array}{c} \sigma \\ w \end{array} \right ] \right |\right|_2^2  \ge ( \sigma^2 + w^Tw )^2
+\]
+podemos concluir que $||A_1||_2^2 \ge  \sigma^2 + w^Tw$. Sin embargo $\sigma^2 = ||A||_2^2 = ||A_1||_2^2$, por lo tanto $w=0$. Es decir que $A_1$ tiene la estructura diagonal por bloques
+\[
+ A_1 = \left [ \begin{array}{cc}  \sigma &    0 \\
+                                         0   & B  
+                   \end{array} 
+       \right ]
+\]
+
+Un argumento inductivo evidente completa la prueba del resultado. \hfill $\square$
+
+\end{prb}
+
+\subsubsection*{Propiedades}
+
+La DVS revela pr\'acticamente toda la estructura algebraica de una matriz. Por ejemplo:
+\begin{enumerate}
+  \item Los valores singulares de $A$ son las longitudes de los semi ejes del hiperelipsoide 
+        \[
+           H = \left \{ Ax : ||x||_2 =1 \right \}
+        \]
+         definido por $A$.
+  \item Si definimos $r$ como 
+  \[
+     \sigma_1 \ge \cdots \sigma_r > \sigma_{r+1} = \cdots = \sigma_p = 0,
+  \]
+  entonces 
+    \begin{enumerate}
+     \item $\mbox{rango}(A) = r$
+     \item $K(A) = \mbox{gen} \left \{ v_{r+1}, \ldots, v_n \right \}$
+     \item $R(A) = \mbox{gen} \left \{ u_1, \ldots, u_r \right \}$
+    \end{enumerate}
+  \item La matriz $A$ se puede representar como una suma de matrices de rango 1 (desarrollo DVS)
+         \begin{eqnarray} \label{suma}
+            A = \sum_{i=1}^r \sigma_i u_i v_i^T.
+         \end{eqnarray}
+  \item Diversas relaciones entre  $||A||_{\rm F}$ y $||A||_2$
+        \begin{enumerate}
+         \item $||A||_{\rm F} = \sigma_1^2 + \cdots + \sigma_p^2$, \quad $p = \min\{m,n\}$
+         \item $||A||_2 = \sigma_1$
+         \item $\displaystyle{ \min_{||x||_2 = 1} ||Ax||_2 = \sigma_n}$, \quad $(m \ge n)$.
+        \end{enumerate}
+\end{enumerate}
+
+
+\subsubsection*{Ejercicios}
+
+\begin{enumerate}
+ \item Investigar c\'omo se construye la DVS en forma num\'ericamente estable. ?`Cu\'al es la complejidad del m\'etodo m\'as difundido?
+ \item Considerar el problema de m\'{\i}nimos cuadrados $Ax = b$, en donde $A$ es una matriz real de $m \times n$ de rango completo por columnas ($m>n$).  Obtener la expresi\'on 
+ \[
+         \bar{x} = (A^TA)^{-1} A^T b
+ \]
+ mediante argumentos de \'algebra lineal.
+ \item Interpretar el m\'etodo de an\'alisis de componentes principales en el contexto de la DVS.
+ \item Investigar el significado e impacto pr\'actico de la factorizaci\'on de Schur (matrices reales y complejas).
+\end{enumerate}
+ 
+
+\subsubsection*{Proyecto}
+  
+%En el siguiente proyecto vamos a utilizar las propiedades de la DVS para resolver un problema pr\'actico relevante.
+
+Clasificar autom\'aticamente d\'{\i}gitos manuscritos es un problema muy difundido en el \'area de reconocimiento de patrones. La aplicaci\'on m\'as popular consiste en
+automatizar la lectura de los c\'odigos postales en piezas de correo. 
+
+ En este proyecto, los d\'{\i}gitos consisten de im\'agenes de 20 $\times$ 20 pixeles en tonos de gris; para fines pr\'acticos las im\'agenes se tratan como vectores en $\real^{400}$, obtenidos apilando las 20 columnas de una imagen.  Para cada d\'{\i}gito $d$,  $d \in \{0,1, \ldots, 9\}$, tenemos una muestra de 500 elementos organizada como una matriz de $400 \times 500$.
+ 
+%Una manera de resolver el problema anterior es mediante la DVS.
+%
+%\begin{quotation}
+% {\em  A partir de un conjunto de d\'{\i}gitos clasificados manualmente (muestra de entrenamiento), clasificar un conjunto de d\'{\i}gitos desconocidos (conjunto de prueba).}
+%\end{quotation}
+%
+Consideremos un d\'{\i}gito particular, digamos $d \in \{0,1, \ldots, 9\}$. Si obtenemos la DVS de $A^d$, entonces la propiedad (\ref{suma}) 
+         \[
+            A^d = \sum_{i=1}^r \sigma_i u_i v_i^T.
+         \]
+indica que cada columna de $A^d$, denotada como $a_j$,  se puede expresar como
+\[
+      a_j = \sum_{i=1}^m (\sigma_i v_{ij}) u_i,
+\]
+en donde $v_{ij}$ es la $j$-\'esima componente del vector $v_i$. La expresi\'on anterior sugiere que cada columna se puede aproximar por los primeros $K$ t\'erminos de la suma, es decir
+\[
+       a_j \approx \sum_{i=1}^K (\sigma_i v_{ij}) u_i.
+\]
+Notar que los primeros vectores singulares de $A^d$ contienen la {\em informaci\'on dominante}. 
+
+Ahora podemos identificar un d\'{\i}gito desconocido, digamos $z$, resolviendo el siguiente problema de m\'{\i}nimos cuadrados (MC).
+\[
+    \mbox{minimizar}  \quad || z - U_K \alpha ||_2^2,
+\]
+en donde $U_K$ es la submatriz de $U$ formada por los primeros $K$ vectores singulares. La soluci\'on del problema de MC es 
+\[
+    \alpha = U_K^Tz,
+\]
+mientras que la norma del residuo es 
+\begin{eqnarray}  \label{MC}
+  ||r(z)||_2 = || z - U_KU_K^Tz||_2
+\end{eqnarray}
+ Es inmediato concluir que si $||r(z)||_2$ es muy peque\~na, entonces probablemente $z = d$.
+
+El razonamiento anterior se puede formular como el siguiente algoritmo:
+\begin{enumerate}
+ \item Inicio. 
+       \begin{itemize}
+         \item Calcular la DVS de las matrices $A^j, \quad j=0, \ldots, 9$.
+       \end{itemize}
+ \item Elegir aleatoriamente $z$, un d\'{\i}gito de la muestra completa
+       \begin{itemize}
+         \item resolver (\ref{MC}) para cada d\'{\i}gito
+         \item asignar  $z$ a la clase con menor error $||r(z)||_2$.
+         \item verificar si el d\'{\i}gito fue identificado correctamente.
+       \end{itemize}
+ \item Repetir 2. para 100 elecciones de $z$ y obtener la tasa de \'exito
+\end{enumerate}
+
+\subsubsection*{Reporte t\'ecnico}
+
+ Utilizar parte del archivo \LaTeX \, de este documento para escribir un reporte en el que se discutan los resultados obtenidos. La estructura sugerida para el reporte es:
+ \begin{enumerate}
+  \item Introducci\'on. El problema por resolver. Relevancia.
+  \item Fundamentos matem\'aticos. El teorema de existencia de la DVS + la correspondiente prueba.
+  \item Fundamentos num\'ericos. La realizaci\'on pr\'actica de la DVS mediante un algoritmo  num\'ericamente estable.
+  \item Experimentos. Reportar la tasa de \'exito para diferentes valores de $K$. 
+  \item Conclusiones.
+ \end{enumerate}
+
+
+\enddocument
+
+
+
+
