@@ -1,0 +1,23 @@
+import svm
+import logging
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import itertools
+import argh
+
+
+num_samples=10
+num_features=2
+grid_size=20
+
+# Random data
+samples = np.matrix(np.random.normal(size=num_samples * num_features)
+                    .reshape(num_samples, num_features))
+labels = 2 * (samples.sum(axis=1) > 0) - 1.0
+
+# Train and predict
+trainer = svm.SVMTrainer(svm.Kernel.linear(), 0.1)
+predictor = trainer.train(samples, labels)
+
+plot(predictor, samples, labels, grid_size)
