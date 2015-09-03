@@ -1,0 +1,10 @@
+import numpy as np
+import pandas as pd
+
+
+data = pd.read_table('wdbc.data', sep=',', header=None)
+X = data.ix[:, 2:]
+y = data.ix[:, 1]
+y = np.array([1 if label == 'B' else -1 for label in y])
+
+trainer = svm.SVMTrainer(svm.Kernel.linear(), 0.1)
