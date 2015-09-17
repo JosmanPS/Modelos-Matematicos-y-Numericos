@@ -1,3 +1,4 @@
+
 import numpy as np
 import cvxopt.solvers
 import logging
@@ -77,6 +78,64 @@ class SVMTrainer(object):
 
         # y^t x = 0
         A = cvxopt.matrix(y, (1, n_samples))
+        b = cvxopt.matrix(0.0)
+
+        # -x <= 0
+        G_l = cvxopt.matrix(np.diag(np.ones(n_samples)) * -1)
+        h_l = cvxopt.matrix(np.zeros(n_samples))
+
+        # x <= c
+        G_u = cvxopt.matrix(np.diag(np.ones(n_samples)))
+        h_u = cvxopt.matrix(np.ones(n_samples) * self._c)
+
+        G = cvxopt.matrix(np.vstack((G_l, G_u)))
+        h = cvxopt.matrix(np.vstack((h_l, h_u)))
+
+        solution = cvxopt.solvers.qp(P, e, G, h, A, b)
+
+        # Return Lagrange multipliers
+        return np.ravel(solution['x'])
+
+    def _optimization_dual_linear(self, X, y, mu):
+        """
+        Solves the dual problem with linear kernel.
+        Modifies the problem so we don't need to
+        compute XX^T. We use logarithmic barrier.
+        """
+
+        n_samples, n_features = X.shape
+
+        # Solves
+        # min     1/2 z^t z - e^t x
+        # s.a.    b^t x = 0
+        #         Ax - z = 0
+        #         x - c e >= 0
+        #         x >= 0
+        #
+        # Where A = X^t Y
+
+        # Objective function
+        P = cvxopt.matrix(np.vstack(
+            (
+                np.eye(n_features),
+                np.zeros((n_samples, n_features)),
+            )
+        ))
+
+        # Hasta aquí llego
+        e = cvxopt.matrix(
+            np.vstack(
+                (
+                    np.zeros((n_features, 1)),
+                    -1 * np.ones((n_samples, 1)),
+                )
+            )
+        )
+
+        # y^t x = 0
+        A = cvxopt.matrix(
+            np.hstack((np.zeros((1, n_features)), y.reshape(1, n_samples)))
+        )
         b = cvxopt.matrix(0.0)
 
         # -x <= 0

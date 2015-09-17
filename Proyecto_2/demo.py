@@ -44,7 +44,7 @@ samples = np.matrix(np.random.normal(size=num_samples * num_features)
 labels = 2 * (samples.sum(axis=1) > 0) - 1.0
 
 # Train and predict
-trainer = svm.SVMTrainer(svm.Kernel.linear(), 0.1)
+trainer = svm.SVMTrainer(svm.Kernel.gaussian(0.5), 0.1)
 predictor = trainer.train(samples, labels)
 
 plot(predictor, samples, labels, grid_size, "svm-demo.pdf")
