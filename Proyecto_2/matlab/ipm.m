@@ -47,6 +47,7 @@ function [ x, y, s ] = ipm(X, y, c=1, tol=1e-6)
     F2 = b' * x;
     F3 = A*x - y;
     F4 = x - gamma*e_n + s;
+    F = - [F1; F3; -F2];
 
     %
     % Comenzamos el proceso iterativo
@@ -56,13 +57,12 @@ function [ x, y, s ] = ipm(X, y, c=1, tol=1e-6)
         iter = iter + 1;
 
         %
-        % Planteamos el sistema a resolver
+        % Planteamos el sistema predictor
         %
         KKT = [  zeros(n,n),       A'    ,     -b      ;
                      A     ,    -eye(m)  ,  zeros(m, 1);
                     -b'    ,  zeros(1, m),     0.0     ];
         KKT = sparse(KKT);
-        F = - [F1; F3; -F2];
 
         %
         % Resolvemos el sistema predictor
@@ -77,4 +77,63 @@ function [ x, y, s ] = ipm(X, y, c=1, tol=1e-6)
         %
         % Calculamos el parámetro de centralidad
         %
+        mu_aff = (x + alpha_x*dx)' * (s + alpha_s*ds) / n;
+        sigma = (mu_aff/mu)^3;
+
+        % % % % % % % % % % % % % % % %
         
+        %
+        % Planteamos el sistema corrector
+        %
+        z = mu * sigma * X_inv * e_n;
+        w = mu * sigma * S_inv * e_n;
+        Z = diag(z);    Z = sparse(Z);
+        W = diag(w);    W = sparse(W);
+
+        KKT(1:n, 1:n) = X_inv*Z + S_inv*W;
+        F5 = X*z - mu * sigma * e_n;
+        F6 = S*w - mu * sigma * e_n;
+        F(1:n) = - (F1 - z + w + X_inv*F5 + S_inv*F6 + S_inv*W*F4);
+
+        %
+        % Resolvemos el sistema corrector
+        %
+        d = backsolve(KKT, F);
+        dx = d(1:n);
+        dy = d(n+1:n+m);
+        dlm = d(n+m+1);
+        ds = -F4 - dx;
+
+        alpha_x = step(x, dx, 1);
+        alpha_s = step(s, ds, 1);
+        alpha = min(alpha_x, alpha_s);
+        
+        %
+        % Calculamos el paso
+        %
+        x = x + alpha*dx;
+        y = y + alpha*dy;
+        s = s + alpha*ds;
+        lm = lm + alpha*dlm;
+
+        %
+        % Actualizamos los nuevos valores
+        %
+        %
+        X = sparse(diag(x));
+        Y = sparse(diag(y));
+        X_inv = sparse(diag(1./x));
+        S_inv = sparse(diag(1./s));
+
+        F1 = -e_n - lm*b + A'*y;
+        F2 = b' * x;
+        F3 = A*x - y;
+        F4 = x - gamma*e_n + s;
+        F = - [F1; F3; -F2];
+
+        mu = (x' * s) / n;
+        d_gap = mu;
+
+    end
+    
+end
