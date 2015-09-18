@@ -41,6 +41,9 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
     S_inv = diag(1./s);    S_inv = sparse(S_inv);
     iter = 0;
 
+    z = mu * X_inv * e_n;  %%%%
+    w = mu * S_inv * e_n;  %%%%
+    
     % 
     % Escribimos los residuos sin parámetro de centralidad
     %
@@ -55,7 +58,7 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
     %
     while d_gap > tol & iter < 20
         
-        iter = iter + 1
+        iter = iter + 1;
 
         %
         % Planteamos el sistema predictor
@@ -64,7 +67,6 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
                      A     ,    -eye(m)  ,  zeros(m, 1);
                     -b'    ,  zeros(1, m),     0.0     ];
         KKT = sparse(KKT);
-        cond(KKT)
 
         %
         % Resolvemos el sistema predictor
@@ -87,8 +89,8 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         %
         % Planteamos el sistema corrector
         %
-        z = mu * sigma * X_inv * e_n;
-        w = mu * sigma * S_inv * e_n;
+        % z = mu * sigma * X_inv * e_n;
+        % w = mu * sigma * S_inv * e_n;
         Z = diag(z);    Z = sparse(Z);
         W = diag(w);    W = sparse(W);
 
@@ -105,6 +107,8 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         dy = d(n+1:n+m);
         dlm = d(n+m+1);
         ds = -F4 - dx;
+        dz = -X_inv * (F5 + Z*dx);  %%%%
+        dw = -S_inv * (F6 + W*ds);  %%%%
 
         alpha_x = step(x, dx, 0.995);
         alpha_s = step(s, ds, 0.995);
@@ -117,6 +121,8 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         y = y + alpha*dy;
         s = s + alpha*ds;
         lm = lm + alpha*dlm;
+        z = z + alpha*dz;
+        w = w + alpha*dw;
 
         %
         % Actualizamos los nuevos valores
@@ -133,7 +139,7 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         F4 = x - gamma*e_n + s;
         F = - [F1; F3; -F2];
 
-        mu = (x' * s) / n;
+        mu = (x'*z + s'*w) / (2*n);
         d_gap = mu
 
     end
