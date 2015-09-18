@@ -43,27 +43,31 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
 
     z = mu * X_inv * e_n;  %%%%
     w = mu * S_inv * e_n;  %%%%
+    Z = sparse(diag(z));
+    W = sparse(diag(w));
     
     % 
     % Escribimos los residuos sin parámetro de centralidad
     %
-    F1 = -e_n - lm*b + A'*y;
+    F1 = -e_n - lm*b + A'*y -z + w;
     F2 = b' * x;
     F3 = A*x - y;
     F4 = x - gamma*e_n + s;
-    F = - [F1; F3; -F2];
+    F5 = X*z;
+    F6 = S*w;
+    F = - [F1+X_inv*F5-S_inv*F6+S_inv*W*F4; F3; -F2];
 
     %
     % Comenzamos el proceso iterativo
     %
-    while d_gap > tol & iter < 20
+    while d_gap > tol && iter < 20 && norm(F) > tol
         
         iter = iter + 1;
 
         %
         % Planteamos el sistema predictor
         %
-        KKT = [  zeros(n,n),       A'    ,     -b      ;
+        KKT = [  X_inv*Z + S_inv*W,       A'    ,     -b      ;
                      A     ,    -eye(m)  ,  zeros(m, 1);
                     -b'    ,  zeros(1, m),     0.0     ];
         KKT = sparse(KKT);
@@ -77,11 +81,20 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
 
         alpha_x = step(x, dx, 0.995);
         alpha_s = step(s, ds, 0.995);
+        alpha = min(alpha_x, alpha_s);
+        
+        %F5 = X*z;
+        %F6 = S*w;
+
+        dz = -X_inv * (F5 + Z*dx);
+        dw = -S_inv * (F6 + W*ds);
 
         %
         % Calculamos el parámetro de centralidad
         %
-        mu_aff = (x + alpha_x*dx)' * (s + alpha_s*ds) / n;
+        mu_aff = (x + alpha*dx)' * (z + alpha*dz);
+        mu_aff = mu_aff + (s + alpha*ds)' * (w + alpha*dw);
+        mu_aff = mu_aff / (2*n);
         sigma = (mu_aff/mu)^3;
 
         % % % % % % % % % % % % % % % %
@@ -91,13 +104,13 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         %
         % z = mu * sigma * X_inv * e_n;
         % w = mu * sigma * S_inv * e_n;
-        Z = diag(z);    Z = sparse(Z);
-        W = diag(w);    W = sparse(W);
+        % Z = diag(z);    Z = sparse(Z);
+        % W = diag(w);    W = sparse(W);
 
-        KKT(1:n, 1:n) = X_inv*Z + S_inv*W;
-        F5 = X*z - mu * sigma * e_n;
-        F6 = S*w - mu * sigma * e_n;
-        F(1:n) = - (F1 - z + w + X_inv*F5 + S_inv*F6 + S_inv*W*F4);
+        % KKT(1:n, 1:n) = X_inv*Z + S_inv*W;
+        F5 = F5 - mu * sigma * e_n;
+        F6 = F6 - mu * sigma * e_n;
+        F(1:n) = - (F1 + X_inv*F5 + S_inv*F6 + S_inv*W*F4);
 
         %
         % Resolvemos el sistema corrector
@@ -132,15 +145,20 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         S = sparse(diag(s));
         X_inv = sparse(diag(1./x));
         S_inv = sparse(diag(1./s));
+        Z = diag(z);    Z = sparse(Z);
+        W = diag(w);    W = sparse(W);
 
         F1 = -e_n - lm*b + A'*y;
         F2 = b' * x;
         F3 = A*x - y;
         F4 = x - gamma*e_n + s;
-        F = - [F1; F3; -F2];
+        F5 = X*z;
+        F6 = S*w;
+        F = - [F1+X_inv*F5-S_inv*F6+S_inv*W*F4; F3; -F2];
 
         mu = (x'*z + s'*w) / (2*n);
-        d_gap = mu
+        d_gap = mu;
+        obj = 0.5 * y'*y - e_n'*x
 
     end
     
