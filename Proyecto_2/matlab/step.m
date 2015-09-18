@@ -12,7 +12,7 @@ function alpha = step(x, dx, tau)
     x = x(neg);
     dx = dx(neg);
     dx = x ./ dx;
-    alpha = min( -tau * dx );
+    alpha = tau * min( -dx );
     alpha = min(1.0d0, alpha);
 
 end
