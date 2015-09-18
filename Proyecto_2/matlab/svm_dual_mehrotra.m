@@ -1,4 +1,4 @@
-function [ x, y, s ] = ipm(X, y, c, tol)
+function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
 
     %
     % Calculamos los valores del modelo computacional
@@ -53,9 +53,9 @@ function [ x, y, s ] = ipm(X, y, c, tol)
     %
     % Comenzamos el proceso iterativo
     %
-    while d_gap > tol & iter < 200
+    while d_gap > tol & iter < 20
         
-        iter = iter + 1;
+        iter = iter + 1
 
         %
         % Planteamos el sistema predictor
@@ -73,8 +73,8 @@ function [ x, y, s ] = ipm(X, y, c, tol)
         dx = d(1:n);
         ds = -F4 - dx;
 
-        alpha_x = step(x, dx, 0.995);
-        alpha_s = step(s, ds, 0.995);
+        alpha_x = step(x, dx, 1);
+        alpha_s = step(s, ds, 1);
 
         %
         % Calculamos el parámetro de centralidad
@@ -106,9 +106,9 @@ function [ x, y, s ] = ipm(X, y, c, tol)
         dlm = d(n+m+1);
         ds = -F4 - dx;
 
-        alpha_x = step(x, dx, 0.995);
-        alpha_s = step(s, ds, 0.995);
-        alpha = min(alpha_x, alpha_s);
+        alpha_x = step(x, dx, 1);
+        alpha_s = step(s, ds, 1);
+        alpha = min(alpha_x, alpha_s)
         
         %
         % Calculamos el paso

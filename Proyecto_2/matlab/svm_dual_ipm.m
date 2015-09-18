@@ -1,4 +1,4 @@
-function [ x, y, s ] = ipm(X, y, c, tol)
+function [ x, y, s ] = svm_dual_ipm(X, y, c, tol)
 
     %
     % Calculamos los valores del modelo computacional
@@ -17,6 +17,7 @@ function [ x, y, s ] = ipm(X, y, c, tol)
     b = y;
     gamma = c;
     [m, n] = size(A);
+    sigma = 0.2;
 
     varlist = {'X', 'y', 'Y', 'c'};
     clear(varlist{:});
@@ -55,32 +56,7 @@ function [ x, y, s ] = ipm(X, y, c, tol)
     %
     while d_gap > tol & iter < 200
         
-        iter = iter + 1;
-
-        %
-        % Planteamos el sistema predictor
-        %
-        KKT = [  zeros(n,n),       A'    ,     -b      ;
-                     A     ,    -eye(m)  ,  zeros(m, 1);
-                    -b'    ,  zeros(1, m),     0.0     ];
-        KKT = sparse(KKT);
-        cond(KKT)
-
-        %
-        % Resolvemos el sistema predictor
-        %
-        d = backsolve(KKT, F);
-        dx = d(1:n);
-        ds = -F4 - dx;
-
-        alpha_x = step(x, dx, 0.995);
-        alpha_s = step(s, ds, 0.995);
-
-        %
-        % Calculamos el parámetro de centralidad
-        %
-        mu_aff = (x + alpha_x*dx)' * (s + alpha_s*ds) / n;
-        sigma = (mu_aff/mu)^3;
+        iter = iter + 1
 
         % % % % % % % % % % % % % % % %
         
@@ -92,10 +68,14 @@ function [ x, y, s ] = ipm(X, y, c, tol)
         Z = diag(z);    Z = sparse(Z);
         W = diag(w);    W = sparse(W);
 
-        KKT(1:n, 1:n) = X_inv*Z + S_inv*W;
+        KKT = [  X_inv*Z + S_inv*W,       A'    ,     -b      ;
+                     A     ,    -eye(m)  ,  zeros(m, 1);
+                    -b'    ,  zeros(1, m),     0.0     ];
+        KKT = sparse(KKT);
+        cond(KKT)  %%%%%%%%%%%%%%%%%%%%%%%%
         F5 = X*z - mu * sigma * e_n;
         F6 = S*w - mu * sigma * e_n;
-        F(1:n) = - (F1 - z + w + X_inv*F5 + S_inv*F6 + S_inv*W*F4);
+        F = - [F1 - z + w + X_inv*F5 + S_inv*F6 + S_inv*W*F4; F3; -F2];
 
         %
         % Resolvemos el sistema corrector
