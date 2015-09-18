@@ -73,8 +73,8 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         dx = d(1:n);
         ds = -F4 - dx;
 
-        alpha_x = step(x, dx, 1);
-        alpha_s = step(s, ds, 1);
+        alpha_x = step(x, dx, 0.995);
+        alpha_s = step(s, ds, 0.995);
 
         %
         % Calculamos el parámetro de centralidad
@@ -106,9 +106,9 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         dlm = d(n+m+1);
         ds = -F4 - dx;
 
-        alpha_x = step(x, dx, 1);
-        alpha_s = step(s, ds, 1);
-        alpha = min(alpha_x, alpha_s)
+        alpha_x = step(x, dx, 0.995);
+        alpha_s = step(s, ds, 0.995);
+        alpha = min(alpha_x, alpha_s);
         
         %
         % Calculamos el paso
