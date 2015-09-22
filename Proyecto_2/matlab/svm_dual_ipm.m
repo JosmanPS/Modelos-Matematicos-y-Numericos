@@ -42,15 +42,27 @@ function [ x, y, s ] = svm_dual_ipm(X, y, c, tol)
     S_inv = diag(1./s);    S_inv = sparse(S_inv);
     iter = 0;
 
+    %
+    %
+    %
+    z = mu * sigma * X_inv * e_n;
+    w = mu * sigma * S_inv * e_n;
+    Z = diag(z);    Z = sparse(Z);
+    W = diag(w);    W = sparse(W);
+    
     % 
     % Escribimos los residuos sin parámetro de centralidad
     %
-    F1 = -e_n - lm*b + A'*y;
+    F1 = -e_n - lm*b + A'*y -z + w;
     F2 = b' * x;
     F3 = A*x - y;
     F4 = x - gamma*e_n + s;
+    F5 = X * z;
+    F6 = S * w;
     F = - [F1; F3; -F2];
 
+    fprintf(['iter  ||f1||    ||f2||    ||f3||    ||f4||    ||f5||    ||f6||   ' ...
+             'OBJ    mu_k    alpha    sigma']);
     %
     % Comenzamos el proceso iterativo
     %
@@ -63,11 +75,6 @@ function [ x, y, s ] = svm_dual_ipm(X, y, c, tol)
         %
         % Planteamos el sistema corrector
         %
-        z = mu * sigma * X_inv * e_n;
-        w = mu * sigma * S_inv * e_n;
-        Z = diag(z);    Z = sparse(Z);
-        W = diag(w);    W = sparse(W);
-
         KKT = [  X_inv*Z + S_inv*W,       A'    ,     -b      ;
                      A     ,    -eye(m)  ,  zeros(m, 1);
                     -b'    ,  zeros(1, m),     0.0     ];
@@ -75,7 +82,7 @@ function [ x, y, s ] = svm_dual_ipm(X, y, c, tol)
         cond(KKT)  %%%%%%%%%%%%%%%%%%%%%%%%
         F5 = X*z - mu * sigma * e_n;
         F6 = S*w - mu * sigma * e_n;
-        F = - [F1 - z + w + X_inv*F5 + S_inv*F6 + S_inv*W*F4; F3; -F2];
+        F = - [F1 + X_inv*F5 + S_inv*F6 + S_inv*W*F4; F3; -F2];
 
         %
         % Resolvemos el sistema corrector
