@@ -9,11 +9,16 @@ function alpha = step(x, dx, tau)
 % ------------------------------------------------------
     
     neg = (dx < 0.0d0);
-    x = x(neg);
-    dx = dx(neg);
-    dx = x ./ dx;
-    alpha = tau * min( -dx );
-    alpha = min(1.0d0, alpha);
-
+    
+    if not(sum(neg))
+        alpha = tau;
+    else
+        x = x(neg);
+        dx = dx(neg);
+        dx = x ./ dx;
+        alpha = tau * min( -dx );
+        alpha = min(1.0d0, alpha);
+    end
+        
 end
     
