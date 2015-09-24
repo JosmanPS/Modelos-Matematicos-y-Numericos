@@ -25,7 +25,7 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
     % Calculamos el punto inicial para el mpi
     %
     e_n = ones(n, 1);
-    x = gamma / 2 * e_n;
+    x =( gamma / 2) * e_n;
     s = x;
     y = A * x;
     lm = 1;
@@ -56,7 +56,7 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
     F5 = X*z;
     F6 = S*w;
     F1_cor = F1 + X_inv*F5 - S_inv*F6 + S_inv*W*F4;
-    F = - [F1+X_inv*F5-S_inv*F6+S_inv*W*F4; F3; -F2];
+    F = - [F1_cor; F3; -F2];
     obj = 0.5 * y'*y - e_n'*x;
 
     %
@@ -65,12 +65,16 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
     fprintf(['iter   ||f1||      ||f2||      ||f3||      ||f4||      ||f5||      ||f6||   ' ...
              '     OBJ        mu_k        alpha       sigma\n']);
     fprintf(['---------------------------------------------------------------' ...
-             '---------------------------------------------------------------\n']);
+             '---------------------------------------------------------------' ...
+             '\n']);
+    fprintf(['%3i  %1.4e  %1.4e  %1.4e  %1.4e  %1.4e  %1.4e  %1.4e  %1.4e  ' ...
+             '\n'], iter, norm(F1), norm(F2), norm(F3), norm(F4), ...
+            norm(F5), norm(F6), obj, mu);
     
     %
     % Comenzamos el proceso iterativo
     %
-    while d_gap > tol && iter < 50 && norm(F) > tol
+    while d_gap > tol && iter < 50 
         
         iter = iter + 1;
 
@@ -117,8 +121,10 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         % W = diag(w);    W = sparse(W);
 
         % KKT(1:n, 1:n) = X_inv*Z + S_inv*W;
-        F5 = F5 - mu * sigma * e_n;
-        F6 = F6 - mu * sigma * e_n;
+        % F5 = F5 - mu * sigma * e_n;
+        % F6 = F6 - mu * sigma * e_n;
+        F5 = F5 - mu * sigma * e_n + dx.*dz;
+        F6 = F6 - mu * sigma * e_n + ds.*dw;
         F1_cor = F1 + X_inv*F5 - S_inv*F6 + S_inv*W*F4;
         F = - [F1_cor; F3; -F2];
 
@@ -169,7 +175,7 @@ function [ x, y, s ] = svm_dual_mehrotra(X, y, c, tol)
         F5 = X*z;
         F6 = S*w;
         F1_cor = F1 + X_inv*F5 - S_inv*F6 + S_inv*W*F4;
-        F = - [F1+X_inv*F5-S_inv*F6+S_inv*W*F4; F3; -F2];
+        F = - [F1_cor; F3; -F2];
 
         mu = (x'*z + s'*w) / (2*n);
         d_gap = mu;
