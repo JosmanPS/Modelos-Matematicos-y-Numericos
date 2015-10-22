@@ -1,0 +1,16 @@
+function index = forwIndex(k, m)
+
+if k < m
+    
+    % index = 1:(k-1);
+    
+else
+
+    index = zeros(m,1);
+    n = mod(k, m);
+    index(1:m-n) = [n:m];
+    index((m-n+2):m) = [1:n-1];
+
+end
+    
+end
